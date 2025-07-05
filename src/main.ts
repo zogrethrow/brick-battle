@@ -1,5 +1,6 @@
 import Playfield from "./playfield";
 import * as Mouse from "./input/mouse";
+import * as Keyboard from "./input/keyboard";
 import EntityManager from "./entity/entity_manager";
 import { ctx } from "./global";
 import Unit from "./entity/unit";
@@ -22,6 +23,7 @@ function tick(frame: number) {
     lastFrame = (frame / 1000);
 
     Mouse.update();
+    Keyboard.update();
 
     entityManager.process(deltatime);
 

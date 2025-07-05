@@ -5,7 +5,7 @@ import ButtonState from "./button_state";
 /**
  * Position of the mouse cursor.
  */
-export let position: Vector2 = new Vector2(0, 0);
+export let position: Vector2 = new Vector2(-1, -1);
 
 /**
  * State for all mouse buttons.
@@ -41,13 +41,14 @@ canvas.addEventListener("mousemove", (event) => {
 });
 
 // Add mouse click/release listeners
-document.addEventListener("mousedown", (event) => {
+canvas.addEventListener("mousedown", (event) => {
     buttons[event.button].next = true;
 });
 document.addEventListener("mouseup", (event) => {
     buttons[event.button].next = false;
 });
 
+// Drop all mouse event if the window loses focus
 window.addEventListener("blur", () => {
     for (const button of buttons) {
         button.next = false;
