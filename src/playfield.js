@@ -51,6 +51,8 @@ export default class Playfield {
         for (let i = 0; i < width; i++) {
             this.#grid[i] = column.slice();
         }
+
+		this.setTile(1, 1, PLAYFIELD_TILE.SOLID);
     }
 
 	/**
@@ -68,12 +70,26 @@ export default class Playfield {
 	}
 
 	/**
+	 * @param {number} x 
+	 * @param {number} y 
+	 * @param {PLAYFIELD_TILE} value 
+	 */
+	setTile(x, y, value) {
+		if (x < 0 || y < 0 || x >= this.width || y >= this.height) {
+			return;
+		}
+
+		this.#grid[x][y] = value;
+	}
+
+	/**
 	 * @param {number} deltaTime
 	 */
 	process(deltaTime) {
 	}
 
 	render() {
+		// Render grid outline
 		ctx.strokeStyle = "black";
 		ctx.beginPath();
 
@@ -88,5 +104,21 @@ export default class Playfield {
 		}
 
 		ctx.stroke();
+
+		// Render grid elements
+		for (let i = 0; i < this.width; i++) {
+			for (let j = 0; j < this.height; j++) {
+				const x = i * GRID_SIZE;
+				const y = j * GRID_SIZE;
+
+				switch (this.getTile(i, j)) {
+					case PLAYFIELD_TILE.SOLID: {
+						ctx.fillStyle = "lime";
+						ctx.fillRect(x+5, y+5, GRID_SIZE-10, GRID_SIZE-10);
+						break;
+					}
+				}
+			}
+		}
 	}
 }
