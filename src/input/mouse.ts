@@ -48,6 +48,12 @@ document.addEventListener("mouseup", (event) => {
     buttons[event.button].next = false;
 });
 
+window.addEventListener("blur", () => {
+    for (const button of buttons) {
+        button.next = false;
+    }
+});
+
 // Ignore these events
 for (const eventName of ["contextmenu", "drag", "dragstart"]) {
     canvas.addEventListener(eventName, (event) => {
