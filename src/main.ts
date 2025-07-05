@@ -5,6 +5,7 @@ import EntityManager from "./entity/entity_manager";
 import { ctx } from "./global";
 import Unit from "./entity/unit";
 import Vector2 from "./vector2";
+import Pathfinding from "./pathfinding";
 
 let lastFrame = 0;
 const entityManager = new EntityManager();
@@ -13,10 +14,11 @@ const playfield = new Playfield(20, 15);
 playfield.loadState();
 entityManager.add(playfield);
 
+const pathfinding = new Pathfinding(playfield);
+
 const unit = new Unit(new Vector2(200, 200));
 entityManager.add(unit);
-
-unit.move(new Vector2(400, 400));
+entityManager.add(pathfinding);
 
 function tick(frame: number) {
     const deltatime = (frame / 1000) - lastFrame;
