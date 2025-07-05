@@ -1,5 +1,6 @@
 import { ctx } from "./global";
 import EntityInterface from "./entity/entity_interface";
+import * as Mouse from "./input/mouse";
 
 export const GRID_SIZE = 32;
 
@@ -54,7 +55,11 @@ export default class Playfield implements EntityInterface {
 	}
 
 	process(deltaTime: number) {
-		
+		const mouseX = Math.floor(Mouse.position.x / GRID_SIZE);
+		const mouseY = Math.floor(Mouse.position.y / GRID_SIZE);
+
+		if (Mouse.left.held) this.setTile(mouseX, mouseY, PLAYFIELD_TILE.SOLID);
+		if (Mouse.right.held) this.setTile(mouseX, mouseY, PLAYFIELD_TILE.VACANT);
 	}
 
 	render() {

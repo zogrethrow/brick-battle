@@ -41,10 +41,10 @@ canvas.addEventListener("mousemove", (event) => {
 });
 
 // Add mouse click/release listeners
-canvas.addEventListener("mousedown", (event) => {
+document.addEventListener("mousedown", (event) => {
     buttons[event.button].next = true;
 });
-canvas.addEventListener("mouseup", (event) => {
+document.addEventListener("mouseup", (event) => {
     buttons[event.button].next = false;
 });
 

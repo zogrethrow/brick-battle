@@ -47,6 +47,6 @@ export default class ButtonState {
      */
     update() {
         this.#previous = this.#current;
-        this.#current = this.#next;        
+        this.#current = this.#next;
     }
 }
