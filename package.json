@@ -1,5 +1,9 @@
 {
   "devDependencies": {
+    "esbuild": "0.25.5",
     "prettier": "3.6.2"
+  },
+  "scripts": {
+    "build": "esbuild ./src/main.ts --bundle --outfile=main.js --minify --sourcemap"
   }
 }

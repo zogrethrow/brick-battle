@@ -1,5 +1,5 @@
-import "./global.js";
-import Playfield from "./playfield.js";
+import "./global.ts";
+import Playfield from "./playfield.ts";
 
 console.log("bruh");
 

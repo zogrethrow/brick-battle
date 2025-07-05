@@ -1,43 +1,24 @@
-import { ctx } from "./global.js";
+import { ctx } from "./global.ts";
 
 export const GRID_SIZE = 32;
 
-/**
- * @enum {number}
- */
-export const PLAYFIELD_TILE = {
-    VACANT: 0,
-    SOLID: 1,
+export enum PLAYFIELD_TILE {
+    VACANT,
+    SOLID,
 };
 
 export default class Playfield {
-    /**
-     * Tiles on the grid
-     * @type {Array<Array<PLAYFIELD_TILE>>}
-     */
-    #grid;
+    #grid: PLAYFIELD_TILE[][];
 
-    /**
-     * Width of the playfield grid
-     * @returns {number}
-     */
-    get width() {
+    get width(): number {
         return this.#grid.length;
     }
 
-    /**
-     * Width of the playfield grid
-     * @returns {number}
-     */
-    get height() {
+    get height(): number {
 		return this.#grid[0].length;
     }
 
-    /**
-     * @param {number} width
-     * @param {number} height
-     */
-    constructor(width, height) {
+    constructor(width: number, height: number) {
         if (width <= 0 || height <= 0) {
             throw new Error("cannot make a Playfield with widh or height <= 0");
         }
@@ -55,13 +36,7 @@ export default class Playfield {
 		this.setTile(1, 1, PLAYFIELD_TILE.SOLID);
     }
 
-	/**
-	 * 
-	 * @param {number} x 
-	 * @param {number} y
-	 * @returns {PLAYFIELD_TILE} 
-	 */
-	getTile(x, y) {
+	getTile(x: number, y: number): PLAYFIELD_TILE {
 		if (x < 0 || y < 0 || x >= this.width || y >= this.height) {
 			return PLAYFIELD_TILE.SOLID;
 		}
@@ -69,12 +44,7 @@ export default class Playfield {
 		return this.#grid[x][y];
 	}
 
-	/**
-	 * @param {number} x 
-	 * @param {number} y 
-	 * @param {PLAYFIELD_TILE} value 
-	 */
-	setTile(x, y, value) {
+	setTile(x: number, y: number, value: PLAYFIELD_TILE) {
 		if (x < 0 || y < 0 || x >= this.width || y >= this.height) {
 			return;
 		}
@@ -82,10 +52,7 @@ export default class Playfield {
 		this.#grid[x][y] = value;
 	}
 
-	/**
-	 * @param {number} deltaTime
-	 */
-	process(deltaTime) {
+	process(deltaTime: number) {
 	}
 
 	render() {
