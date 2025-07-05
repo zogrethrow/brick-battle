@@ -4,7 +4,10 @@ import EntityManager from "./entity/entity_manager";
 import { ctx } from "./global";
 
 const entityManager = new EntityManager();
-entityManager.add(new Playfield(20, 15));
+
+const playfield = new Playfield(20, 15);
+playfield.loadState();
+entityManager.add(playfield);
 
 function frame() {
     Mouse.update();

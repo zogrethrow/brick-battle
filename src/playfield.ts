@@ -54,12 +54,46 @@ export default class Playfield implements EntityInterface {
 		this.#grid[x][y] = value;
 	}
 
+	saveState() {
+		const state: {x: number, y: number, cell: number}[] = [];
+		for (let x = 0; x < this.width; x++) {
+			for (let y = 0; y < this.height; y++) {
+				const cell = this.#grid[x][y];
+				if (cell) {
+					state.push({x, y, cell});
+				}
+			}
+		}
+
+		const jsonState = JSON.stringify(state);
+		window.localStorage.setItem("grid_state", jsonState);
+	}
+
+	loadState() {
+		const jsonState = window.localStorage.getItem("grid_state");
+		if (!jsonState) return;
+
+		const state = JSON.parse(jsonState) as {x?: number, y?: number, cell?: PLAYFIELD_TILE}[];
+		if (!(state instanceof Array)) return;
+		
+		for (const cellState of state) {
+			const x = cellState.x ?? -1;
+			const y = cellState.y ?? -1;
+			const cell = cellState.cell ?? PLAYFIELD_TILE.VACANT;
+			this.setTile(x, y, cell);
+		}
+	}
+
 	process(deltaTime: number) {
 		const mouseX = Math.floor(Mouse.position.x / GRID_SIZE);
 		const mouseY = Math.floor(Mouse.position.y / GRID_SIZE);
 
 		if (Mouse.left.held) this.setTile(mouseX, mouseY, PLAYFIELD_TILE.SOLID);
 		if (Mouse.right.held) this.setTile(mouseX, mouseY, PLAYFIELD_TILE.VACANT);
+
+		if (Mouse.left.released || Mouse.right.released) {
+			this.saveState();
+		}
 	}
 
 	render() {
