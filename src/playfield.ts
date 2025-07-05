@@ -1,4 +1,5 @@
-import { ctx } from "./global.ts";
+import { ctx } from "./global";
+import EntityInterface from "./entity/entity_interface";
 
 export const GRID_SIZE = 32;
 
@@ -7,7 +8,7 @@ export enum PLAYFIELD_TILE {
     SOLID,
 };
 
-export default class Playfield {
+export default class Playfield implements EntityInterface {
     #grid: PLAYFIELD_TILE[][];
 
     get width(): number {
@@ -53,6 +54,7 @@ export default class Playfield {
 	}
 
 	process(deltaTime: number) {
+		
 	}
 
 	render() {

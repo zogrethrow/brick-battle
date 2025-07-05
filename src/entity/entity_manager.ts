@@ -1,4 +1,4 @@
-import EntityInterface from "./abstract_entity";
+import EntityInterface from "./entity_interface";
 
 export default class EntityManager {
   #entities: EntityInterface[] = [];
@@ -8,7 +8,8 @@ export default class EntityManager {
   }
 
   remove(entity: EntityInterface) {
-    this.#entities.splice(this.#entities[entity], 1);
+    const index = this.#entities.findIndex((existingEntity) => existingEntity === entity);
+    this.#entities = this.#entities.splice(index, 1);
   }
 
   process(deltatime: number) {
@@ -19,7 +20,7 @@ export default class EntityManager {
 
   render() {
     for (const entity of this.#entities) {
-      entity.process();
+      entity.render();
     }
   }
 }

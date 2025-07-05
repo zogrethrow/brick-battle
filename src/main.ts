@@ -1,16 +1,15 @@
-import "./global.ts";
-import Playfield from "./playfield.ts";
+import Playfield from "./playfield";
 import * as Mouse from "./input/mouse";
+import EntityManager from "./entity/entity_manager";
 
-console.log("bruh");
-
-const playfield = new Playfield(20, 15);
+const entityManager = new EntityManager();
+entityManager.add(new Playfield(20, 15));
 
 function frame() {
     Mouse.update();
-    console.log(`held: ${Mouse.left.held}, pressed: ${Mouse.left.pressed}, released: ${Mouse.left.released}`);
-    playfield.process(0);
-    playfield.render();
+    
+    entityManager.process(0);
+    entityManager.render();
 }
 
 function tick() {
