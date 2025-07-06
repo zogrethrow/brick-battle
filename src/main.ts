@@ -31,6 +31,20 @@ function tick(frame: number) {
 
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
     entityManager.render();
+
+    // Raycast test
+    ctx.moveTo(unit.position.x, unit.position.y);
+    ctx.lineTo(Mouse.position.x, Mouse.position.y);
+    const raycast = playfield.lineIntersection(unit.position, Mouse.position);
+    ctx.strokeStyle = (raycast === null) ? "yellow" : "red";
+    ctx.stroke();
+    if (raycast) {
+        ctx.moveTo(raycast.x, raycast.y);
+        ctx.fillStyle = ctx.strokeStyle;
+        ctx.arc(raycast.x, raycast.y, 3, 0, Math.PI*2);
+        ctx.fill();
+    }
+
     window.requestAnimationFrame(tick);
 }
 

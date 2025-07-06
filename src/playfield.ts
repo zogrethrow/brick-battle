@@ -1,6 +1,7 @@
 import { ctx } from "./global";
 import EntityInterface from "./entity/entity_interface";
 import * as Mouse from "./input/mouse";
+import Vector2 from "./vector2";
 
 export const GRID_SIZE = 32;
 
@@ -22,7 +23,7 @@ export default class Playfield implements EntityInterface {
 
     constructor(width: number, height: number) {
         if (width <= 0 || height <= 0) {
-            throw new Error("cannot make a Playfield with widh or height <= 0");
+            throw new Error("cannot make a Playfield with width or height <= 0");
         }
 
         const column = new Array(height);
@@ -34,8 +35,6 @@ export default class Playfield implements EntityInterface {
         for (let i = 0; i < width; i++) {
             this.#grid[i] = column.slice();
         }
-
-		this.setTile(1, 1, PLAYFIELD_TILE.SOLID);
     }
 
 	getTile(x: number, y: number): PLAYFIELD_TILE {
@@ -128,5 +127,65 @@ export default class Playfield implements EntityInterface {
 				}
 			}
 		}
+	}
+
+	/**
+	 * Given a start point and an end point (in world space).
+	 * Returns the point along the ray, where there is an obstacle (if any).
+	 */
+	lineIntersection(start: Vector2, end: Vector2): Vector2|null {
+		
+		// Form ray cast from player into scene
+		const rayStart = start.div(GRID_SIZE);
+		const rayEnd = end.div(GRID_SIZE);
+		const rayDir = rayEnd.sub(rayStart).normalize();
+
+		const rayLength = new Vector2(0, 0);
+		const mapCheck = new Vector2(~~rayStart.x, ~~rayStart.y);
+		const step = new Vector2(Math.sign(rayDir.x) || 1, Math.sign(rayDir.y) || 1);
+		const rayUnitStepSize = new Vector2(
+			Math.sqrt(1 + (rayDir.y / rayDir.x) * (rayDir.y / rayDir.x)),
+			Math.sqrt(1 + (rayDir.x / rayDir.y) * (rayDir.x / rayDir.y)),
+		);
+
+		// Establish Starting Conditions
+		if (rayDir.x < 0) {
+			rayLength.x = (rayStart.x - mapCheck.x) * rayUnitStepSize.x;
+		} else {
+			rayLength.x = ((mapCheck.x + 1) - rayStart.x) * rayUnitStepSize.x;
+		}
+
+		if (rayDir.y < 0) {
+			rayLength.y = (rayStart.y - mapCheck.y) * rayUnitStepSize.y;
+		} else {
+			rayLength.y = ((mapCheck.y + 1) - rayStart.y) * rayUnitStepSize.y;
+		}
+
+		// Perform "Walk" until collision or range check
+		const maxDistance = rayStart.sub(rayEnd).length;
+		let distance = 0;
+		while (distance < maxDistance) {
+			
+			// Test tile at new test point
+			if (this.getTile(mapCheck.x, mapCheck.y) === PLAYFIELD_TILE.SOLID) {
+				return new Vector2(
+					(rayStart.x + rayDir.x * distance) * GRID_SIZE,
+					(rayStart.y + rayDir.y * distance) * GRID_SIZE,
+				);
+			}
+			
+			// Walk along shortest path
+			if (rayLength.x < rayLength.y) {
+				mapCheck.x += step.x;
+				distance = rayLength.x;
+				rayLength.x += rayUnitStepSize.x;
+			} else {
+				mapCheck.y += step.y;
+				distance = rayLength.y;
+				rayLength.y += rayUnitStepSize.y;
+			}
+		}
+
+		return null;
 	}
 }
