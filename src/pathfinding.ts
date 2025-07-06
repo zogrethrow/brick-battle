@@ -14,7 +14,6 @@ export default class Pathfinding implements EntityInterface {
     this.#mapHeight = map.height;
     this.#map = map;
     this.calculateInitialWaypoints();
-    this.render();
   }
 
   calculateInitialWaypoints() {
@@ -55,9 +54,12 @@ export default class Pathfinding implements EntityInterface {
     }
   }
 
-  process(deltatime: number) {}
+  process(deltatime: number): void {
+    this.#waypoints = [];
+    this.calculateInitialWaypoints();
+  }
 
-  render() {
+  render(): void {
     for (const waypoint of this.#waypoints) {
       ctx.moveTo(waypoint.x * GRID_SIZE, waypoint.y * GRID_SIZE);
       ctx.beginPath();

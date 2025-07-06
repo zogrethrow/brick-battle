@@ -15,10 +15,10 @@ playfield.loadState();
 entityManager.add(playfield);
 
 const pathfinding = new Pathfinding(playfield);
+entityManager.add(pathfinding);
 
 const unit = new Unit(new Vector2(200, 200));
 entityManager.add(unit);
-entityManager.add(pathfinding);
 
 function tick(frame: number) {
     const deltatime = (frame / 1000) - lastFrame;
