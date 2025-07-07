@@ -21,31 +21,31 @@ const unit = new Unit(new Vector2(200, 200));
 entityManager.add(unit);
 
 function tick(frame: number) {
-    const deltatime = (frame / 1000) - lastFrame;
-    lastFrame = (frame / 1000);
+	const deltatime = frame / 1000 - lastFrame;
+	lastFrame = frame / 1000;
 
-    Mouse.update();
-    Keyboard.update();
+	Mouse.update();
+	Keyboard.update();
 
-    entityManager.process(deltatime);
+	entityManager.process(deltatime);
 
-    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-    entityManager.render();
+	ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+	entityManager.render();
 
-    // Raycast test
-    ctx.moveTo(unit.position.x, unit.position.y);
-    ctx.lineTo(Mouse.position.x, Mouse.position.y);
-    const raycast = playfield.lineIntersection(unit.position, Mouse.position);
-    ctx.strokeStyle = (raycast === null) ? "yellow" : "red";
-    ctx.stroke();
-    if (raycast) {
-        ctx.moveTo(raycast.x, raycast.y);
-        ctx.fillStyle = ctx.strokeStyle;
-        ctx.arc(raycast.x, raycast.y, 3, 0, Math.PI*2);
-        ctx.fill();
-    }
+	// Raycast test
+	ctx.moveTo(unit.position.x, unit.position.y);
+	ctx.lineTo(Mouse.position.x, Mouse.position.y);
+	const raycast = playfield.lineIntersection(unit.position, Mouse.position);
+	ctx.strokeStyle = raycast === null ? "yellow" : "red";
+	ctx.stroke();
+	if (raycast) {
+		ctx.moveTo(raycast.x, raycast.y);
+		ctx.fillStyle = ctx.strokeStyle;
+		ctx.arc(raycast.x, raycast.y, 3, 0, Math.PI * 2);
+		ctx.fill();
+	}
 
-    window.requestAnimationFrame(tick);
+	window.requestAnimationFrame(tick);
 }
 
 window.requestAnimationFrame(tick);

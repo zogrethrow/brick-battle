@@ -12,7 +12,7 @@ export let position: Vector2 = new Vector2(-1, -1);
  */
 export const buttons: ButtonState[] = new Array(8);
 for (let i = 0; i < 8; i++) {
-    buttons[i] = new ButtonState();
+	buttons[i] = new ButtonState();
 }
 
 /**
@@ -32,34 +32,34 @@ export const middle = buttons[1];
 
 // Add mouse position listeners
 canvas.addEventListener("mousemove", (event) => {
-    position.x = event.offsetX;
-    position.y = event.offsetY;
+	position.x = event.offsetX;
+	position.y = event.offsetY;
 });
 canvas.addEventListener("mousemove", (event) => {
-    position.x = event.offsetX;
-    position.y = event.offsetY;
+	position.x = event.offsetX;
+	position.y = event.offsetY;
 });
 
 // Add mouse click/release listeners
 canvas.addEventListener("mousedown", (event) => {
-    buttons[event.button].next = true;
+	buttons[event.button].next = true;
 });
 document.addEventListener("mouseup", (event) => {
-    buttons[event.button].next = false;
+	buttons[event.button].next = false;
 });
 
 // Drop all mouse event if the window loses focus
 window.addEventListener("blur", () => {
-    for (const button of buttons) {
-        button.next = false;
-    }
+	for (const button of buttons) {
+		button.next = false;
+	}
 });
 
 // Ignore these events
 for (const eventName of ["contextmenu", "drag", "dragstart"]) {
-    canvas.addEventListener(eventName, (event) => {
-        event.preventDefault();
-    });
+	canvas.addEventListener(eventName, (event) => {
+		event.preventDefault();
+	});
 }
 
 /**
@@ -67,7 +67,7 @@ for (const eventName of ["contextmenu", "drag", "dragstart"]) {
  * Has to be called once every frame.
  */
 export function update() {
-    for (const button of buttons) {
-        button.update();
-    }
+	for (const button of buttons) {
+		button.update();
+	}
 }

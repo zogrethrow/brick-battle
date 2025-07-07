@@ -6,36 +6,36 @@ import Vector2 from "./vector2";
 export const GRID_SIZE = 32;
 
 export enum PLAYFIELD_TILE {
-    VACANT,
-    SOLID,
-};
+	VACANT,
+	SOLID,
+}
 
 export default class Playfield implements EntityInterface {
-    #grid: PLAYFIELD_TILE[][];
+	#grid: PLAYFIELD_TILE[][];
 
-    get width(): number {
-        return this.#grid.length;
-    }
+	get width(): number {
+		return this.#grid.length;
+	}
 
-    get height(): number {
+	get height(): number {
 		return this.#grid[0].length;
-    }
+	}
 
-    constructor(width: number, height: number) {
-        if (width <= 0 || height <= 0) {
-            throw new Error("cannot make a Playfield with width or height <= 0");
-        }
+	constructor(width: number, height: number) {
+		if (width <= 0 || height <= 0) {
+			throw new Error("cannot make a Playfield with width or height <= 0");
+		}
 
-        const column = new Array(height);
-        for (let i = 0; i < height; i++) {
-            column[i] = PLAYFIELD_TILE.VACANT;
-        }
+		const column = new Array(height);
+		for (let i = 0; i < height; i++) {
+			column[i] = PLAYFIELD_TILE.VACANT;
+		}
 
-        this.#grid = new Array(width);
-        for (let i = 0; i < width; i++) {
-            this.#grid[i] = column.slice();
-        }
-    }
+		this.#grid = new Array(width);
+		for (let i = 0; i < width; i++) {
+			this.#grid[i] = column.slice();
+		}
+	}
 
 	getTile(x: number, y: number): PLAYFIELD_TILE {
 		if (x < 0 || y < 0 || x >= this.width || y >= this.height) {
@@ -54,12 +54,12 @@ export default class Playfield implements EntityInterface {
 	}
 
 	saveState() {
-		const state: {x: number, y: number, cell: number}[] = [];
+		const state: { x: number; y: number; cell: number }[] = [];
 		for (let x = 0; x < this.width; x++) {
 			for (let y = 0; y < this.height; y++) {
 				const cell = this.#grid[x][y];
 				if (cell) {
-					state.push({x, y, cell});
+					state.push({ x, y, cell });
 				}
 			}
 		}
@@ -72,9 +72,9 @@ export default class Playfield implements EntityInterface {
 		const jsonState = window.localStorage.getItem("grid_state");
 		if (!jsonState) return;
 
-		const state = JSON.parse(jsonState) as {x?: number, y?: number, cell?: PLAYFIELD_TILE}[];
+		const state = JSON.parse(jsonState) as { x?: number; y?: number; cell?: PLAYFIELD_TILE }[];
 		if (!(state instanceof Array)) return;
-		
+
 		for (const cellState of state) {
 			const x = cellState.x ?? -1;
 			const y = cellState.y ?? -1;
@@ -121,7 +121,7 @@ export default class Playfield implements EntityInterface {
 				switch (this.getTile(i, j)) {
 					case PLAYFIELD_TILE.SOLID: {
 						ctx.fillStyle = "lime";
-						ctx.fillRect(x+5, y+5, GRID_SIZE-10, GRID_SIZE-10);
+						ctx.fillRect(x + 5, y + 5, GRID_SIZE - 10, GRID_SIZE - 10);
 						break;
 					}
 				}
@@ -133,8 +133,7 @@ export default class Playfield implements EntityInterface {
 	 * Given a start point and an end point (in world space).
 	 * Returns the point along the ray, where there is an obstacle (if any).
 	 */
-	lineIntersection(start: Vector2, end: Vector2): Vector2|null {
-		
+	lineIntersection(start: Vector2, end: Vector2): Vector2 | null {
 		// Form ray cast from player into scene
 		const rayStart = start.div(GRID_SIZE);
 		const rayEnd = end.div(GRID_SIZE);
@@ -152,20 +151,19 @@ export default class Playfield implements EntityInterface {
 		if (rayDir.x < 0) {
 			rayLength.x = (rayStart.x - mapCheck.x) * rayUnitStepSize.x;
 		} else {
-			rayLength.x = ((mapCheck.x + 1) - rayStart.x) * rayUnitStepSize.x;
+			rayLength.x = (mapCheck.x + 1 - rayStart.x) * rayUnitStepSize.x;
 		}
 
 		if (rayDir.y < 0) {
 			rayLength.y = (rayStart.y - mapCheck.y) * rayUnitStepSize.y;
 		} else {
-			rayLength.y = ((mapCheck.y + 1) - rayStart.y) * rayUnitStepSize.y;
+			rayLength.y = (mapCheck.y + 1 - rayStart.y) * rayUnitStepSize.y;
 		}
 
 		// Perform "Walk" until collision or range check
 		const maxDistance = rayStart.sub(rayEnd).length;
 		let distance = 0;
 		while (distance < maxDistance) {
-			
 			// Test tile at new test point
 			if (this.getTile(mapCheck.x, mapCheck.y) === PLAYFIELD_TILE.SOLID) {
 				return new Vector2(
@@ -173,7 +171,7 @@ export default class Playfield implements EntityInterface {
 					(rayStart.y + rayDir.y * distance) * GRID_SIZE,
 				);
 			}
-			
+
 			// Walk along shortest path
 			if (rayLength.x < rayLength.y) {
 				mapCheck.x += step.x;
