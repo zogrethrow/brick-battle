@@ -1,171 +1,57 @@
-type ProgressCallback = (progress: number, total: number) => void;
-type Task = (task: Task) => void;
+import { audioContext } from "./audio/audio";
+import { Sound } from "./audio/audio";
+import SoundBuffered from "./audio/sound_buffered";
+import { SoundStreamed } from "./audio/sound_streamed";
 
-enum AUDIO_CODECS {
-	mp3 = "audio/mp3",
-	ogg = 'audio/ogg; codecs="vorbis"',
+export async function loadBitmap(url: string): Promise<ImageBitmap> {
+	const response = await fetch(url);
+	const blob = await response.blob();
+
+	return createImageBitmap(blob, { colorSpaceConversion: "none" });
 }
 
-type AudioSource = { [K in keyof typeof AUDIO_CODECS]: string };
+export async function loadSound(url: string): Promise<Sound> {
+	const response = await fetch(url);
+	const audioData = await response.arrayBuffer();
 
-/**
- * Get a single element from an object, based on codecs.
- * Codecs availability is determined using the provided audio element.
- */
-function getSupportedCodecs(audio: HTMLAudioElement, source: Partial<AudioSource>): string {
-	// Store codec that MIGHT be playable
-	let maybe: string | null = null;
+	const audioBuffer = await audioContext.decodeAudioData(audioData);
+	return new SoundBuffered(audioBuffer);
+}
 
-	// Loop through available audio codecs for sound
-	for (const key in source) {
-		const codecName = key as keyof typeof AUDIO_CODECS;
-		if (!source[codecName]) continue;
-		const codec = AUDIO_CODECS[codecName];
-		const result = audio.canPlayType(codec);
+export async function loadMusic(url: string): Promise<Sound> {
+	const respone = await fetch(url);
+	const audioData = await respone.blob();
 
-		// Browser can play this type, return that
-		if (result === "probably") {
-			return source[codecName];
-		}
+	const audioUrl = URL.createObjectURL(audioData);
+	return new SoundStreamed(audioUrl);
+}
 
-		// Browser might be able to play this, hang on to it
-		if (result === "maybe") {
-			maybe ??= source[codecName];
-		}
-	}
+export async function loadText(url: string): Promise<string> {
+	const response = await fetch(url);
+	return response.text();
+}
 
-	// Return the sound with a codec that MIGHT be playable
-	if (maybe) {
-		return maybe;
-	}
-
-	// We just didn't find anything
-	throw new Error("no supported codecs found");
+export async function loadBytes(url: string): Promise<ArrayBuffer> {
+	const response = await fetch(url);
+	return response.arrayBuffer();
 }
 
 export default class AssetLoader {
-	#progress: number = 0;
-	#total: number = 0;
-	#complete: boolean = false;
-	#started: boolean = false;
+	#tasks: Array<() => Promise<void>> = [];
 
-	#promise: Promise<void>;
-	#promiseResolve: () => void;
-	#promiseReject: (reason: Error) => void;
-
-	#tasks: Set<Task> = new Set();
-	#onProgress: ProgressCallback | null;
-
-	get progress(): number {
-		return this.#progress;
-	}
-
-	get complete(): boolean {
-		return this.#complete;
-	}
-
-	constructor(onProgress: ProgressCallback | null = null) {
-		this.#promiseResolve = () => {};
-		this.#promiseReject = () => {};
-		this.#promise = new Promise((resolve, reject) => {
-			this.#promiseReject = reject;
-			this.#promiseResolve = resolve;
-		});
-
-		this.#onProgress = onProgress;
-	}
-
-	#addTask(task: Task) {
-		this.#total += 1;
-
-		if (!this.#tasks.has(task)) {
-			this.#tasks.add(task);
-			if (this.#started) {
-				task(task);
-			}
-		}
-	}
-
-	#endTask(task: Task) {
-		this.#tasks.delete(task);
-
-		this.#progress += 1;
-		if (this.#onProgress) {
-			this.#onProgress(this.#progress, this.#total);
-		}
-
-		if (this.#tasks.size === 0) {
-			this.#complete = true;
-			this.#promiseResolve();
-		}
-	}
-
-	loadImage(url: string): Promise<HTMLImageElement> {
+	/**
+	 *
+	 * @param task
+	 * @returns
+	 */
+	addTask<T>(task: () => Promise<T>): Promise<T> {
 		return new Promise((resolve, reject) => {
-			const img = new Image();
-			this.#addTask((task) => {
-				img.addEventListener("load", () => {
-					this.#endTask(task);
-					resolve(img);
-				});
-
-				img.addEventListener("error", () => {
-					const error = new Error(`could not load image from "${url}"`);
-					reject(error);
-					this.#promiseReject(error);
-				});
-
-				img.src = url;
+			this.#tasks.push(async () => {
+				const promise = task();
+				promise.then(resolve);
+				promise.catch(reject);
+				await promise;
 			});
-
-			return img;
-		});
-	}
-
-	loadText(url: string): Promise<string> {
-		return new Promise((resolve, reject) => {
-			this.#addTask((task) => {
-				const request = fetch(url, {
-					method: "GET",
-				});
-
-				request.then(async (response) => {
-					const text = await response.text();
-
-					this.#endTask(task);
-					resolve(text);
-				});
-
-				request.catch(() => {
-					const error = new Error(`could not load text from "${url}"`);
-					reject(error);
-					this.#promiseReject(error);
-				});
-			});
-		});
-	}
-
-	loadSound(source: Partial<AudioSource>): Promise<HTMLAudioElement> {
-		return new Promise((resolve, reject) => {
-			const audio = new Audio();
-			this.#addTask((task) => {
-				const url = getSupportedCodecs(audio, source);
-
-				audio.addEventListener("canplaythrough", (event) => {
-					this.#endTask(task);
-					resolve(audio);
-				});
-
-				audio.addEventListener("error", (event) => {
-					const error = new Error(`could not load audio from "${url}"`);
-					reject(error);
-					this.#promiseReject(error);
-				});
-
-				audio.src = url;
-				audio.load();
-			});
-			return audio;
 		});
 	}
 
@@ -173,15 +59,28 @@ export default class AssetLoader {
 	 * Begins loading.
 	 * A promise is returned, that resolves when loading is done.
 	 * If any assets fail to load, the promise is rejected.
+	 *
+	 * This also resets the state of the AssetLoader, so it can be reused.
 	 */
-	load(): Promise<void> {
-		if (!this.#started) {
-			this.#started = true;
-			for (const task of this.#tasks.values()) {
-				task(task);
+	async load(onProgress: ((loaded: number, total: number) => void) | null = null): Promise<void> {
+		const tasks = this.#tasks;
+		this.#tasks = [];
+
+		const promises: Array<Promise<void>> = new Array(tasks.length);
+		let i = 0;
+		let progress = 0;
+		for (const task of tasks) {
+			const promise = task();
+			promises[i++] = promise;
+
+			// Notify that something happened
+			if (onProgress) {
+				promise.then(() => {
+					onProgress(++progress, tasks.length);
+				});
 			}
 		}
 
-		return this.#promise;
+		await Promise.all(promises);
 	}
 }
