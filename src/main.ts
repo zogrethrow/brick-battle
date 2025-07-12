@@ -1,23 +1,18 @@
 import Playfield from "./playfield";
 import * as Mouse from "./input/mouse";
 import * as Keyboard from "./input/keyboard";
-import EntityManager from "./entity/entity_manager";
+import { entityManager } from "./entity/entity_manager";
 import { ctx } from "./global";
 import Unit from "./entity/unit";
 import Vector2 from "./vector2";
-import Pathfinding from "./pathfinding";
 
 let lastFrame = 0;
-const entityManager = new EntityManager();
 
 const playfield = new Playfield(20, 15);
 playfield.loadState();
-entityManager.add(playfield);
+entityManager.addPlayfield(playfield);
 
-const pathfinding = new Pathfinding(playfield);
-entityManager.add(pathfinding);
-
-const unit = new Unit(new Vector2(200, 200));
+const unit = new Unit(new Vector2(200, 200), 1);
 entityManager.add(unit);
 
 function tick(frame: number) {
