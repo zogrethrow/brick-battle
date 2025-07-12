@@ -29,6 +29,10 @@ export default class Vector2 {
 		return Math.atan2(other.x - this.x, other.y - this.y);
 	}
 
+  distanceTo(other: Vector2): number {
+    return this.sub(other).length;
+  }
+
 	add(other: Vector2): Vector2 {
 		return new Vector2(this.x + other.x, this.y + other.y);
 	}
@@ -41,12 +45,16 @@ export default class Vector2 {
 		return new Vector2(this.x * scalar, this.y * scalar);
 	}
 
+  mulVec(other: Vector2): Vector2 {
+    return new Vector2(this.x * other.x, this.y * other.y);
+  }
+
 	div(scalar: number): Vector2 {
 		return new Vector2(this.x / scalar, this.y / scalar);
 	}
 
-	normalize(): Vector2 {
-		const length = this.length;
+  normalize(): Vector2 {
+	const length = this.length;
 		return new Vector2(this.x / length, this.y / length);
 	}
 }
