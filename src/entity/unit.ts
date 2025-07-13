@@ -1,21 +1,23 @@
 import { ctx } from "../global";
 import { GRID_SIZE } from "../playfield";
 import Vector2 from "../vector2";
-import EntityInterface from "./entity_interface";
-import * as Mouse from "../input/mouse.ts";
-import { entityManager } from "./entity_manager";
+import EntityInterface from "../entity/entity_interface";
+import { entityManager } from "../entity/entity_manager";
 
 export default class Unit implements EntityInterface {
-  #maxVelocity: Vector2 = new Vector2(GRID_SIZE, GRID_SIZE);
-  #maxForce: number = GRID_SIZE * 2;
-  #maxVision: number = GRID_SIZE * 5;
-  #maxAvoidForce: number = GRID_SIZE * 3;
+  #maxSpeed: number = GRID_SIZE * 1;
+  #maxForce: number = this.#maxSpeed * 0.1; // or lower for smoother movement
+  #mass: number;
   #target: null | Vector2 = null;
   #velocity: Vector2 = new Vector2(0, 0);
-  #weight: number = 1;
+  #acceleration: Vector2 = new Vector2(0, 0);
+  #ahead: Vector2;
+  #ahead2: Vector2;
 
   constructor(public position: Vector2, weight: number) {
-    this.#weight = weight;
+    this.#mass = weight;
+    this.#ahead = position;
+    this.#ahead2 = position;
   }
 
   move(target: Vector2): void {
@@ -37,68 +39,18 @@ export default class Unit implements EntityInterface {
   }
 
   #walk(deltatime: number): void {
-    if (Mouse.middle.pressed) {
-      const x = Math.floor(Mouse.position.x / GRID_SIZE) * GRID_SIZE + GRID_SIZE * 0.5;
-      const y = Math.floor(Mouse.position.y / GRID_SIZE) * GRID_SIZE + GRID_SIZE * 0.5;
-      this.#target = new Vector2(x, y);
-    }
-
     if (this.#target == null) return;
     if (this.position.x == this.#target.x && this.position.y == this.#target.y) return;
-
-    let desiredVelocity = this.normalize(this.position, this.#target)
-      .mulVec(this.#maxVelocity.mul(deltatime));
-
-    let steering = desiredVelocity.sub(this.#velocity);
-    steering = steering.add(this.#collisionAvoidance())
-
-    if (steering.length > this.#maxForce) {
-      steering = steering.normalize().mul(this.#maxForce);
+    if (this.position.distanceTo(this.#target) < GRID_SIZE * 0.05) {
+      this.position = this.#target;
+      this.#target = null;
+      return;
     }
 
-    steering = steering.div(this.#weight);
+    const desiredVelocity = this.#target.sub(this.position).normalize().mul(this.#maxSpeed);
 
-    this.#velocity = this.#velocity.add(steering);
-
-    this.position = this.position.add(this.#velocity);
-  }
-
-  normalize(position: Vector2, target: Vector2): Vector2 {
-    if (target.sub(position).length === 0) return new Vector2(0, 0);
-    return target.sub(position).normalize();
-  }
-
-  #collisionAvoidance(): Vector2 {
-    let ahead: Vector2 = this.position.add(this.#velocity.normalize()).mul(this.#maxVision);
-    let ahead2: Vector2 = ahead.mul(0.5);
-
-    let closestObstacle = this.#findClosestObstacle(ahead, ahead2);
-    let avoidance: Vector2 = new Vector2(0, 0);
-
-    if (closestObstacle === null) return avoidance;
-    avoidance = this.normalize(ahead, closestObstacle.position).mul(this.#maxAvoidForce);
-
-    return avoidance;
-  }
-
-  #findClosestObstacle(ahead: Vector2, ahead2: Vector2): null | EntityInterface {
-    let closestObstacle: null | EntityInterface = null;
-    let entities: Set<EntityInterface> = entityManager.getEntities();
-
-    for (let entity of entities) {
-      let collision: boolean = this.#entityIntersectsPath(ahead, ahead2, entity);
-
-      if (collision && (closestObstacle == null || this.position.sub(entity.position).length < this.position.sub(closestObstacle.position).length)) {
-        closestObstacle = entity;
-      }
-    }
-
-    return closestObstacle;
-  }
-
-  #entityIntersectsPath(ahead: Vector2, ahead2: Vector2, entity: EntityInterface): boolean {
-    if (entity === this) return false;
-    let radius = GRID_SIZE * 0.5;
-    return entity.position.distanceTo(ahead) <= radius || entity.position.distanceTo(ahead2) <= radius;
+    this.#acceleration = desiredVelocity.sub(this.#velocity).truncate(this.#maxForce).div(this.#mass);
+    this.#velocity = this.#velocity.add(this.#acceleration).truncate(this.#maxSpeed);
+    this.position = this.position.add(this.#velocity.mul(deltatime));
   }
 }

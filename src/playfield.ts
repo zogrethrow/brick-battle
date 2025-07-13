@@ -120,7 +120,7 @@ export default class Playfield implements EntityInterface {
 
 				switch (this.getTile(i, j)) {
 					case PLAYFIELD_TILE.SOLID: {
-						ctx.fillStyle = "lime";
+						ctx.fillStyle = "red";
 						ctx.fillRect(x + 5, y + 5, GRID_SIZE - 10, GRID_SIZE - 10);
 						break;
 					}
