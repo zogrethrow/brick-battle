@@ -5,52 +5,66 @@ import EntityInterface from "../entity/entity_interface";
 import { entityManager } from "../entity/entity_manager";
 
 export default class Unit implements EntityInterface {
-  #maxSpeed: number = GRID_SIZE * 1;
-  #maxForce: number = this.#maxSpeed * 0.1; // or lower for smoother movement
-  #mass: number;
-  #target: null | Vector2 = null;
-  #velocity: Vector2 = new Vector2(0, 0);
-  #acceleration: Vector2 = new Vector2(0, 0);
-  #ahead: Vector2;
-  #ahead2: Vector2;
+	#maxSpeed: number = GRID_SIZE * 1;
+	#maxForce: number = this.#maxSpeed * 0.1;
+	#maxAvoidanceForce: number = GRID_SIZE;
+	#maxHorizon: number = GRID_SIZE * 5;
+	#mass: number;
+	#target: Vector2[] = [];
+	#velocity: Vector2 = new Vector2(0, 0);
+	#acceleration: Vector2 = new Vector2(0, 0);
 
-  constructor(public position: Vector2, weight: number) {
-    this.#mass = weight;
-    this.#ahead = position;
-    this.#ahead2 = position;
-  }
+	constructor(
+		public position: Vector2,
+		weight: number,
+	) {
+		this.#mass = weight;
+	}
 
-  move(target: Vector2): void {
-    this.#target = target;
-  }
+	setTarget(target: Vector2): void {
+		this.#target = [target];
+		console.log("Target set:", this.#target);
+	}
 
-  process(deltatime: number): void {
-    this.#walk(deltatime);
-  }
+	addTarget(target: Vector2): void {
+		this.#target.push(target);
+		console.log("Target added:", this.#target);
+	}
 
-  render(): void {
-    let radius = GRID_SIZE * 0.5;
-    ctx.moveTo(this.position.x, this.position.y);
-    ctx.beginPath();
-    ctx.fillStyle = "blue";
-    ctx.arc(this.position.x, this.position.y, radius - 5, 0, Math.PI * 2);
-    ctx.closePath();
-    ctx.fill();
-  }
+	prependTarget(target: Vector2): void {
+		this.#target.unshift(target);
+		console.log("Target prepended:", this.#target);
+	}
 
-  #walk(deltatime: number): void {
-    if (this.#target == null) return;
-    if (this.position.x == this.#target.x && this.position.y == this.#target.y) return;
-    if (this.position.distanceTo(this.#target) < GRID_SIZE * 0.05) {
-      this.position = this.#target;
-      this.#target = null;
-      return;
-    }
+	process(deltatime: number): void {
+		this.#walk(deltatime);
+	}
 
-    const desiredVelocity = this.#target.sub(this.position).normalize().mul(this.#maxSpeed);
+	render(): void {
+		let radius = GRID_SIZE * 0.5;
+		ctx.moveTo(this.position.x, this.position.y);
+		ctx.beginPath();
+		ctx.fillStyle = "blue";
+		ctx.arc(this.position.x, this.position.y, radius - 5, 0, Math.PI * 2);
+		ctx.closePath();
+		ctx.fill();
+	}
 
-    this.#acceleration = desiredVelocity.sub(this.#velocity).truncate(this.#maxForce).div(this.#mass);
-    this.#velocity = this.#velocity.add(this.#acceleration).truncate(this.#maxSpeed);
-    this.position = this.position.add(this.#velocity.mul(deltatime));
-  }
+	#walk(deltatime: number): void {
+		const currentTarget = this.#target.at(0);
+		if (!currentTarget) return;
+
+		if (this.position.distanceTo(currentTarget) < GRID_SIZE * 0.05) {
+			this.position = this.#target.shift()!;
+			if (this.#target.length === 0) {
+				this.#velocity = this.#velocity.mul(0);
+				return;
+			}
+		}
+
+		const desiredVelocity = this.#target.at(0)!.sub(this.position).normalize().mul(this.#maxSpeed);
+		this.#acceleration = desiredVelocity.sub(this.#velocity).truncate(this.#maxForce).div(this.#mass);
+		this.#velocity = this.#velocity.add(this.#acceleration).truncate(this.#maxSpeed);
+		this.position = this.position.add(this.#velocity.mul(deltatime));
+	}
 }

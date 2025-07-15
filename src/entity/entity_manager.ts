@@ -1,42 +1,39 @@
 import Playfield from "../playfield";
+import Vector2 from "../vector2";
 import EntityInterface from "./entity_interface";
 
 class EntityManager {
-	#entities: Set<EntityInterface> = new Set<EntityInterface>();
-  #playfield: null | Playfield = null;
+	#entities: Map<string, EntityInterface> = new Map<string, EntityInterface>();
+	#playfield: null | Playfield = null;
 
 	add(entity: EntityInterface) {
-		this.#entities.add(entity);
+		this.#entities.set(entity.position.toKey(), entity);
 	}
 
-  addPlayfield(playfield: Playfield) {
-    this.#playfield = playfield;
-  }
+	addPlayfield(playfield: Playfield) {
+		this.#playfield = playfield;
+	}
 
 	remove(entity: EntityInterface) {
-    this.#entities.delete(entity);
+		this.#entities.delete(entity.position.toKey());
 	}
 
-  getEntities(): Set<EntityInterface> {
-    return this.#entities;
-  }
+	getEntityAtPosition(coordinates: Vector2): EntityInterface | null {
+		return this.#entities.get(coordinates.toKey()) ?? null;
+	}
 
-  getPlayfield(): null | Playfield {
-    return this.#playfield;
-  }
+	getPlayfield(): null | Playfield {
+		return this.#playfield;
+	}
 
 	process(deltatime: number) {
-    this.#playfield?.process(deltatime);
-		for (const entity of this.#entities) {
-			entity.process(deltatime);
-		}
+		this.#playfield?.process(deltatime);
+		this.#entities.forEach((entity: EntityInterface): void => entity.process(deltatime));
 	}
 
 	render() {
-    this.#playfield?.render();
-		for (const entity of this.#entities) {
-			entity.render();
-		}
+		this.#playfield?.render();
+		this.#entities.forEach((entity: EntityInterface): void => entity.render());
 	}
 }
 
