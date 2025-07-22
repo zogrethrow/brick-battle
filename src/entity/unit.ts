@@ -1,18 +1,16 @@
-import { ctx } from "../global";
-import { GRID_SIZE } from "../playfield";
 import Vector2 from "../vector2";
-import EntityInterface from "../entity/entity_interface";
-import { entityManager } from "../entity/entity_manager";
+import EntityInterface from "../interfaces/entity_interface";
 
 export default class Unit implements EntityInterface {
-	#maxSpeed: number = GRID_SIZE * 1;
+	#maxSpeed: number = 1;
 	#maxForce: number = this.#maxSpeed * 0.1;
-	#maxAvoidanceForce: number = GRID_SIZE;
-	#maxHorizon: number = GRID_SIZE * 5;
+	#maxAvoidanceForce: number = 1;
+	#maxHorizon: number = 5;
 	#mass: number;
 	#target: Vector2[] = [];
 	#velocity: Vector2 = new Vector2(0, 0);
 	#acceleration: Vector2 = new Vector2(0, 0);
+	public id: string = "";
 
 	constructor(
 		public position: Vector2,
@@ -36,25 +34,15 @@ export default class Unit implements EntityInterface {
 		console.log("Target prepended:", this.#target);
 	}
 
-	process(deltatime: number): void {
-		this.#walk(deltatime);
+	process(deltaTime: number): void {
+		this.#walk(deltaTime);
 	}
 
-	render(): void {
-		let radius = GRID_SIZE * 0.5;
-		ctx.moveTo(this.position.x, this.position.y);
-		ctx.beginPath();
-		ctx.fillStyle = "blue";
-		ctx.arc(this.position.x, this.position.y, radius - 5, 0, Math.PI * 2);
-		ctx.closePath();
-		ctx.fill();
-	}
-
-	#walk(deltatime: number): void {
+	#walk(deltaTime: number): void {
 		const currentTarget = this.#target.at(0);
 		if (!currentTarget) return;
 
-		if (this.position.distanceTo(currentTarget) < GRID_SIZE * 0.05) {
+		if (this.position.distanceTo(currentTarget) < 0.05) {
 			this.position = this.#target.shift()!;
 			if (this.#target.length === 0) {
 				this.#velocity = this.#velocity.mul(0);
@@ -65,6 +53,6 @@ export default class Unit implements EntityInterface {
 		const desiredVelocity = this.#target.at(0)!.sub(this.position).normalize().mul(this.#maxSpeed);
 		this.#acceleration = desiredVelocity.sub(this.#velocity).truncate(this.#maxForce).div(this.#mass);
 		this.#velocity = this.#velocity.add(this.#acceleration).truncate(this.#maxSpeed);
-		this.position = this.position.add(this.#velocity.mul(deltatime));
+		this.position = this.position.add(this.#velocity.mul(deltaTime));
 	}
 }

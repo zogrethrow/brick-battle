@@ -1,40 +1,42 @@
-import Playfield from "../playfield";
 import Vector2 from "../vector2";
-import EntityInterface from "./entity_interface";
+import Playfield from "../playfield";
+import EntityInterface from "../interfaces/entity_interface";
 
-class EntityManager {
-	#entities: Map<string, EntityInterface> = new Map<string, EntityInterface>();
-	#playfield: null | Playfield = null;
+export default class EntityManager {
+	#entities: Map<string, EntityInterface> = new Map();
+	#playfield: Playfield | null = null;
+	#nextId: number = 1;
 
-	add(entity: EntityInterface) {
-		this.#entities.set(entity.position.toKey(), entity);
-	}
-
-	addPlayfield(playfield: Playfield) {
+	addPlayfield(playfield: Playfield): void {
 		this.#playfield = playfield;
 	}
 
-	remove(entity: EntityInterface) {
-		this.#entities.delete(entity.position.toKey());
+	add(entity: EntityInterface): void {
+		const id = `entity_${this.#nextId++}`;
+		(entity as any).id = id;
+		this.#entities.set(id, entity);
+	}
+
+	remove(entity: EntityInterface): void {
+		this.#entities.delete((entity as any).id);
+	}
+
+	getEntities(): EntityInterface[] {
+		return Array.from(this.#entities.values());
 	}
 
 	getEntityAtPosition(coordinates: Vector2): EntityInterface | null {
-		return this.#entities.get(coordinates.toKey()) ?? null;
+		for (const entity of this.#entities.values()) {
+			const gridPos = new Vector2(Math.floor(entity.position.x), Math.floor(entity.position.y));
+			if (gridPos.x === coordinates.x && gridPos.y === coordinates.y) {
+				return entity;
+			}
+		}
+		return null;
 	}
 
-	getPlayfield(): null | Playfield {
-		return this.#playfield;
-	}
-
-	process(deltatime: number) {
-		this.#playfield?.process(deltatime);
-		this.#entities.forEach((entity: EntityInterface): void => entity.process(deltatime));
-	}
-
-	render() {
-		this.#playfield?.render();
-		this.#entities.forEach((entity: EntityInterface): void => entity.render());
+	process(deltaTime: number): void {
+		this.#playfield?.process(deltaTime);
+		this.#entities.forEach((entity: EntityInterface): void => entity.process(deltaTime));
 	}
 }
-
-export const entityManager = new EntityManager();

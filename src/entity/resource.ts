@@ -1,4 +1,4 @@
-import EntityInterface from "./entity_interface";
+import EntityInterface from "../interfaces/entity_interface.ts";
 import { ctx } from "../global";
 import { GRID_SIZE } from "../playfield";
 import Vector2 from "../vector2";
